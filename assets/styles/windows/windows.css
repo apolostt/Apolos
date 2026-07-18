@@ -1,0 +1,195 @@
+.window {
+  width: min(720px, calc(100vw - 80px));
+  min-height: 320px;
+  border-radius: 12px;
+  border: 1px solid rgba(130, 220, 175, 0.35);
+  background: linear-gradient(to bottom, rgba(26, 54, 42, 0.92), rgba(17, 35, 28, 0.94));
+  box-shadow: var(--shadow);
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  animation: pop-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.window.maximized {
+  left: 10px !important;
+  top: 44px !important;
+  width: calc(100vw - 20px) !important;
+  height: calc(100vh - 108px) !important;
+  min-height: calc(100vh - 108px);
+  transform: none !important;
+  border-radius: 8px;
+}
+
+.window.maximized .window-content {
+  height: calc(100% - 48px);
+  overflow: auto;
+}
+
+.window.active-window {
+  border-color: rgba(164, 247, 206, 0.8);
+}
+
+.window.hidden-window {
+  display: none;
+}
+
+.secondary-window {
+  left: 42%;
+  top: 58%;
+  width: min(460px, calc(100vw - 80px));
+  min-height: 240px;
+}
+
+.tertiary-window {
+  left: 60%;
+  top: 61%;
+  width: min(500px, calc(100vw - 80px));
+  min-height: 240px;
+}
+
+.notes-window {
+  left: 49%;
+  top: 46%;
+  width: min(430px, calc(100vw - 80px));
+  min-height: 230px;
+}
+
+.music-window {
+  left: 55%;
+  top: 43%;
+  width: min(390px, calc(100vw - 80px));
+  min-height: 230px;
+}
+
+.stats-window {
+  left: 64%;
+  top: 49%;
+  width: min(360px, calc(100vw - 80px));
+  min-height: 220px;
+}
+
+.window-titlebar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  background: linear-gradient(to bottom, #2a6750, #1b4535);
+  border-bottom: 1px solid rgba(220, 255, 240, 0.1);
+  cursor: move;
+}
+
+.window-titlebar h1 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.window-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot-btn {
+  all: unset;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  display: block;
+}
+
+.close {
+  background: #f07f7f;
+}
+
+.min {
+  background: #f3cf71;
+}
+
+.max {
+  background: #7adf9e;
+}
+
+.window-content {
+  padding: 22px;
+  line-height: 1.55;
+  color: #d9f3e4;
+}
+
+.window-content p {
+  margin-top: 0;
+}
+
+.content-card {
+  border: 1px solid rgba(208, 255, 227, 0.18);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: 12px;
+}
+
+.content-card:last-child {
+  margin-bottom: 0;
+}
+
+.content-card h2 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.terminal-look {
+  font-family: "Ubuntu Mono", "Courier New", monospace;
+}
+
+.notes-editor {
+  width: 100%;
+  min-height: 120px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(208, 255, 227, 0.28);
+  border-radius: 8px;
+  color: inherit;
+  padding: 10px;
+  resize: vertical;
+  margin: 8px 0;
+}
+
+.notes-save-btn {
+  border: 1px solid rgba(208, 255, 227, 0.35);
+  background: linear-gradient(to bottom, #4ca87a, #2c7657);
+  color: #ecfff4;
+  border-radius: 7px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@media (max-width: 700px) {
+  .window {
+    width: calc(100vw - 30px);
+    top: 56%;
+  }
+
+  .window-content {
+    padding: 16px;
+    font-size: 0.95rem;
+  }
+}

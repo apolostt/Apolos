@@ -1,0 +1,55 @@
+body.light-theme {
+  --soft: #173126;
+  --shadow: 0 14px 35px rgba(17, 35, 28, 0.22);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(121, 216, 167, 0.22), transparent 35%),
+    radial-gradient(circle at 80% 15%, rgba(106, 204, 155, 0.22), transparent 30%),
+    linear-gradient(135deg, #d8efe2 0%, #b9dfca 50%, #cde8d8 100%);
+}
+
+body.light-theme .top-strip {
+  background: linear-gradient(to bottom, #d2eddc, #bddfc9);
+  border-bottom-color: rgba(27, 68, 50, 0.22);
+}
+
+body.light-theme .brand,
+body.light-theme .status-icons,
+body.light-theme .window-content {
+  color: #1b3f31;
+}
+
+body.light-theme .window {
+  background: linear-gradient(to bottom, rgba(230, 246, 237, 0.96), rgba(205, 230, 215, 0.96));
+  border-color: rgba(84, 149, 117, 0.42);
+}
+
+body.light-theme .window-titlebar {
+  background: linear-gradient(to bottom, #9ad1b1, #74af8f);
+}
+
+body.light-theme .panel {
+  background: linear-gradient(to bottom, #c7e7d5, #b0d7c2);
+  border-top-color: rgba(27, 68, 50, 0.22);
+}
+
+body.light-theme .start-btn,
+body.light-theme .theme-btn {
+  background: linear-gradient(to bottom, #6cbf93, #4f9f77);
+  color: #f4fff9;
+}
+
+body.light-theme .task-btn,
+body.light-theme .content-card,
+body.light-theme .mint-menu li {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(27, 68, 50, 0.2);
+}
+
+body.light-theme .mint-menu {
+  background: linear-gradient(to bottom, rgba(220, 242, 229, 0.98), rgba(191, 223, 205, 0.98));
+  color: #1b3f31;
+}
+
+body.light-theme .start-btn.active {
+  box-shadow: inset 0 0 0 1px rgba(28, 79, 57, 0.35);
+}

@@ -1,0 +1,54 @@
+{
+  "locale": "cs",
+  "i18n": {
+    "cs": {
+      "brand": "Linux Mint Web",
+      "start": "Start",
+      "menuNavigation": "Navigace",
+      "menuApps": "Aplikace",
+      "menuSystem": "Systém",
+      "themeLight": "Mint Light",
+      "themeDark": "Mint Dark",
+      "notesTitle": "Dnešní TODO",
+      "loadError": "Data aplikace se nepodařilo načíst."
+    },
+    "en": {
+      "brand": "Linux Mint Web",
+      "start": "Start",
+      "menuNavigation": "Navigation",
+      "menuApps": "Applications",
+      "menuSystem": "System",
+      "themeLight": "Mint Light",
+      "themeDark": "Mint Dark",
+      "notesTitle": "Today's TODO",
+      "loadError": "Failed to load app data."
+    }
+  },
+  "desktopIcons": [
+    { "windowId": "homeWindow", "icon": "H", "label": { "cs": "Domov", "en": "Home" } },
+    { "windowId": "filesWindow", "icon": "F", "label": { "cs": "Soubory", "en": "Files" } },
+    { "windowId": "terminalWindow", "icon": "T", "label": { "cs": "Terminál", "en": "Terminal" } },
+    { "windowId": "notesWindow", "icon": "N", "label": { "cs": "Poznámky", "en": "Notes" } },
+    { "windowId": "musicWindow", "icon": "M", "label": { "cs": "Hudba", "en": "Music" } },
+    { "windowId": "statsWindow", "icon": "S", "label": { "cs": "Monitor", "en": "Monitor" } }
+  ],
+  "startMenu": {
+    "navigation": [
+      { "target": "about", "label": { "cs": "O mně", "en": "About" } },
+      { "target": "projects", "label": { "cs": "Projekty", "en": "Projects" } },
+      { "target": "contact", "label": { "cs": "Kontakt", "en": "Contact" } }
+    ],
+    "apps": [
+      { "openWindow": "homeWindow", "label": { "cs": "Domov", "en": "Home" } },
+      { "openWindow": "filesWindow", "label": { "cs": "Soubory", "en": "Files" } },
+      { "openWindow": "terminalWindow", "label": { "cs": "Terminál", "en": "Terminal" } },
+      { "openWindow": "notesWindow", "label": { "cs": "Poznámky", "en": "Notes" } },
+      { "openWindow": "musicWindow", "label": { "cs": "Hudba", "en": "Music" } },
+      { "openWindow": "statsWindow", "label": { "cs": "Monitor", "en": "Monitor" } }
+    ],
+    "system": [
+      { "action": "show-all", "label": { "cs": "Zobrazit všechna okna", "en": "Show all windows" } },
+      { "action": "hide-all", "label": { "cs": "Minimalizovat všechna okna", "en": "Minimize all windows" } }
+    ]
+  }
+}

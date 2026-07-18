@@ -1,0 +1,9 @@
+{
+  "title": "Struktura složek",
+  "items": [
+    "root/",
+    "├─ Projekty",
+    "├─ Dokumenty",
+    "└─ Obrázky"
+  ]
+}

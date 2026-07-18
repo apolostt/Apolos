@@ -1,0 +1,94 @@
+.start-btn {
+  border: 1px solid rgba(208, 255, 227, 0.35);
+  background: linear-gradient(to bottom, #4ca87a, #2c7657);
+  color: #ecfff4;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.start-btn:hover {
+  filter: brightness(1.06);
+}
+
+.start-btn.active {
+  box-shadow: inset 0 0 0 1px rgba(230, 255, 242, 0.45);
+}
+
+.mint-circle {
+  width: 21px;
+  height: 21px;
+  border-radius: 999px;
+  background: #dff8eb;
+  color: #1f5c44;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.theme-btn {
+  border: 1px solid rgba(208, 255, 227, 0.35);
+  background: linear-gradient(to bottom, #2a6750, #1f5a44);
+  color: #ecfff4;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.mint-menu {
+  position: fixed;
+  left: 14px;
+  bottom: 58px;
+  width: 260px;
+  border: 1px solid rgba(132, 224, 178, 0.4);
+  border-radius: 10px;
+  background: linear-gradient(to bottom, rgba(29, 72, 55, 0.96), rgba(19, 42, 33, 0.98));
+  box-shadow: var(--shadow);
+  z-index: 10;
+  padding: 14px;
+}
+
+.mint-menu h2 {
+  margin: 0 0 10px;
+  font-size: 0.96rem;
+}
+
+.menu-group-label {
+  margin: 8px 0 6px;
+  font-size: 0.76rem;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.mint-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.mint-menu li {
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.menu-link {
+  all: unset;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+}
+
+.menu-link:hover {
+  text-decoration: underline;
+}

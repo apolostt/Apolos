@@ -1,516 +1,210 @@
-<!DOCTYPE html>
-<html lang="cs" class="h-full bg-slate-900 text-slate-100">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="WebBox - spravce nahranych HTML webu v prohlizeci." />
-  <title>WebBox - Spravce nahranych HTML webu</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.3); }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 3px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
-  </style>
-</head>
-<body class="h-full flex overflow-hidden font-sans select-none">
-  <div id="drag-overlay" class="fixed inset-0 bg-blue-600/90 z-50 flex flex-col items-center justify-center border-8 border-dashed border-white m-4 rounded-2xl pointer-events-none opacity-0 transition-opacity duration-200">
-    <svg class="w-24 h-24 text-white animate-bounce mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-    </svg>
-    <span class="text-3xl font-bold text-white">Pustte soubor pro nahrani</span>
-    <span class="text-sm text-blue-200 mt-2">Podporovany jsou soubory s priponou .html nebo .htm</span>
-  </div>
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mint Desktop Web</title>
+    <link rel="stylesheet" href="assets/styles/base/base.css" />
+    <link rel="stylesheet" href="assets/styles/apps/apps.css" />
+    <link rel="stylesheet" href="assets/styles/menu/menu.css" />
+    <link rel="stylesheet" href="assets/styles/windows/windows.css" />
+    <link rel="stylesheet" href="assets/styles/theme/theme.css" />
+  </head>
+  <body>
+    <div class="desktop-glow"></div>
 
-  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-80 bg-slate-950 border-r border-slate-800 flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 md:relative md:flex shrink-0">
-    <div class="p-6 border-b border-slate-800 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="bg-blue-600 p-2 rounded-lg text-white shadow-lg shadow-blue-500/20">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 114 0v2m-4 0h4m-4 0h4m12 14v2m-4-2v2m-4-2v2m-4-2v2" />
-          </svg>
-        </div>
-        <div>
-          <h1 class="font-bold text-lg leading-tight tracking-wide text-white">WebBox</h1>
-          <span class="text-xs text-slate-500 font-medium">Spravce HTML stranek</span>
-        </div>
-      </div>
-      <button onclick="toggleSidebar()" class="md:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 transition-colors" aria-label="Zavrit bocni listu">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <div class="p-4 border-b border-slate-800">
-      <label class="group flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-800 hover:border-blue-500/50 bg-slate-900/50 hover:bg-slate-900 rounded-xl cursor-pointer transition-all duration-200">
-        <span class="flex flex-col items-center justify-center pt-5 pb-6">
-          <svg class="w-8 h-8 text-slate-500 group-hover:text-blue-500 transition-colors mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-          </svg>
-          <span class="text-xs font-semibold text-slate-400 group-hover:text-slate-200 transition-colors">Nahrat HTML soubor</span>
-          <span class="text-[10px] text-slate-500 mt-1">Nebo pretahnete kamkoliv</span>
-        </span>
-        <input id="file-uploader" type="file" accept=".html,.htm" multiple class="hidden" onchange="handleFileUpload(event)" />
-      </label>
-    </div>
-
-    <div class="p-4 border-b border-slate-800">
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </span>
-        <input id="search-input" type="text" placeholder="Hledat mezi weby..." oninput="renderFileList()" class="w-full pl-9 pr-4 py-2 text-sm bg-slate-900 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
-      </div>
-    </div>
-
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2" id="file-list-container">
-      <div class="text-center py-8 text-slate-600 text-sm">Zadne nahrane weby</div>
-    </div>
-
-    <div class="p-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between text-xs text-slate-500 font-medium">
-      <span id="storage-status">Vyuziti: zjistuji...</span>
-      <button onclick="resetToDemo()" class="text-blue-500 hover:text-blue-400 hover:underline transition-colors">Nahrat ukazky</button>
-    </div>
-  </aside>
-
-  <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/60 z-30 hidden md:hidden transition-opacity duration-300 opacity-0"></div>
-
-  <main class="flex-1 flex flex-col h-full bg-slate-900 overflow-hidden relative">
-    <header class="h-16 border-b border-slate-800 bg-slate-950/50 flex items-center justify-between px-4 md:px-6 z-10">
-      <div class="flex items-center space-x-4 min-w-0">
-        <button onclick="toggleSidebar()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 transition-colors" title="Prepnout bocni listu" aria-label="Prepnout bocni listu">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div class="min-w-0">
-          <h2 id="current-web-title" class="font-semibold text-slate-100 truncate max-w-[180px] sm:max-w-xs md:max-w-md">Neni vybran zadny web</h2>
-          <p id="current-web-meta" class="text-xs text-slate-500 truncate">Vyberte nebo nahrajte HTML soubor pro spusteni</p>
-        </div>
-      </div>
-
-      <div class="flex items-center space-x-2" id="web-actions" style="display: none;">
-        <button onclick="openInNewTab()" class="p-2 text-slate-400 hover:text-blue-400 rounded-lg hover:bg-slate-900 transition-colors" title="Otevrit v novem okne" aria-label="Otevrit v novem okne">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </button>
-        <button onclick="deleteActiveWeb()" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-900 transition-colors" title="Smazat tento web" aria-label="Smazat tento web">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
+    <header class="top-strip" aria-label="System strip">
+      <div class="brand" data-i18n="brand">Linux Mint Web</div>
+      <div class="status-icons" aria-hidden="true">
+        <span>LAN</span>
+        <span>EN</span>
+        <span>88%</span>
       </div>
     </header>
 
-    <div class="flex-1 w-full h-full relative bg-slate-900">
-      <div id="onboarding-screen" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-900 z-10 transition-opacity duration-300">
-        <div class="max-w-md flex flex-col items-center">
-          <div class="w-20 h-20 bg-blue-600/10 text-blue-500 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
-            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+    <main class="desktop" aria-label="Desktop area">
+      <section id="desktopIcons" class="icon-grid" aria-label="Desktop icons"></section>
+
+      <article id="homeWindow" class="window" data-app="Domov" aria-label="Aktivní okno">
+        <div class="window-titlebar" data-drag-handle>
+          <div class="window-dots" aria-hidden="true">
+            <button class="dot-btn" data-window-action="close" aria-label="Zavřít okno" type="button">
+              <span class="dot close"></span>
+            </button>
+            <button class="dot-btn" data-window-action="min" aria-label="Minimalizovat okno" type="button">
+              <span class="dot min"></span>
+            </button>
+            <button class="dot-btn" data-window-action="max" aria-label="Přiblížit okno" type="button">
+              <span class="dot max"></span>
+            </button>
           </div>
-          <h3 class="text-2xl font-bold text-slate-100 mb-3">Vitejte ve WebBoxu</h3>
-          <p class="text-slate-400 mb-6 text-sm leading-relaxed">
-            Prostredi pro testovani, prohlizeni a spravu statickych HTML stranek primo ve vasem prohlizeci.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-3 w-full justify-center">
-            <button onclick="document.getElementById('file-uploader').click()" class="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl text-sm transition-colors shadow-lg shadow-blue-500/10 flex items-center justify-center space-x-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Nahrat prvni soubor</span>
+          <h1>Domov</h1>
+        </div>
+        <div class="window-content">
+          <section id="about" class="content-card">
+            <h2>O mně</h2>
+            <p>
+              Tohle je landing page inspirovaná Linux Mint desktopem: zelené tóny,
+              panel, ikony a klasické okno na ploše.
+            </p>
+          </section>
+
+          <section id="projects" class="content-card">
+            <h2>Projekty</h2>
+            <p>
+              Přidej sem svoje ukázky, odkazy na GitHub a stručné popisy. Každý
+              projekt může mít vlastní kartu nebo badge.
+            </p>
+          </section>
+
+          <section id="contact" class="content-card">
+            <h2>Kontakt</h2>
+            <p>
+              Sem patří email, sociální sítě nebo formulář. Nabídka vlevo dole
+              na tyto sekce rovnou skroluje.
+            </p>
+          </section>
+        </div>
+      </article>
+
+      <article id="filesWindow" class="window secondary-window" data-app="Soubory" aria-label="Souborové okno">
+        <div class="window-titlebar" data-drag-handle>
+          <div class="window-dots" aria-hidden="true">
+            <button class="dot-btn" data-window-action="close" aria-label="Zavřít okno" type="button">
+              <span class="dot close"></span>
             </button>
-            <button onclick="loadDemoSites()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2.5 px-5 rounded-xl text-sm transition-colors border border-slate-700">
-              Vyzkouset s ukazkami
+            <button class="dot-btn" data-window-action="min" aria-label="Minimalizovat okno" type="button">
+              <span class="dot min"></span>
             </button>
+            <button class="dot-btn" data-window-action="max" aria-label="Přiblížit okno" type="button">
+              <span class="dot max"></span>
+            </button>
+          </div>
+          <h1>Soubory</h1>
+        </div>
+        <div class="window-content">
+          <div class="content-card" data-app-content="filesWindow">
+            <p>Načítám data...</p>
           </div>
         </div>
-      </div>
+      </article>
 
-      <iframe id="web-viewport" class="w-full h-full border-none hidden bg-white" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
-    </div>
+      <article id="terminalWindow" class="window tertiary-window" data-app="Terminál" aria-label="Terminálové okno">
+        <div class="window-titlebar" data-drag-handle>
+          <div class="window-dots" aria-hidden="true">
+            <button class="dot-btn" data-window-action="close" aria-label="Zavřít okno" type="button">
+              <span class="dot close"></span>
+            </button>
+            <button class="dot-btn" data-window-action="min" aria-label="Minimalizovat okno" type="button">
+              <span class="dot min"></span>
+            </button>
+            <button class="dot-btn" data-window-action="max" aria-label="Přiblížit okno" type="button">
+              <span class="dot max"></span>
+            </button>
+          </div>
+          <h1>Terminál</h1>
+        </div>
+        <div class="window-content terminal-look">
+          <p>$ whoami</p>
+          <p>mint-user</p>
+          <p>$ echo "Apolos desktop ready"</p>
+          <p>Apolos desktop ready</p>
+        </div>
+      </article>
 
-    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-  </main>
+      <article id="notesWindow" class="window notes-window hidden-window" data-app="Poznámky" aria-label="Poznámky">
+        <div class="window-titlebar" data-drag-handle>
+          <div class="window-dots" aria-hidden="true">
+            <button class="dot-btn" data-window-action="close" aria-label="Zavřít okno" type="button">
+              <span class="dot close"></span>
+            </button>
+            <button class="dot-btn" data-window-action="min" aria-label="Minimalizovat okno" type="button">
+              <span class="dot min"></span>
+            </button>
+            <button class="dot-btn" data-window-action="max" aria-label="Přiblížit okno" type="button">
+              <span class="dot max"></span>
+            </button>
+          </div>
+          <h1>Poznámky</h1>
+        </div>
+        <div class="window-content">
+          <div class="content-card" data-app-content="notesWindow">
+            <p>Načítám data...</p>
+          </div>
+        </div>
+      </article>
 
-  <script>
-    const DB_NAME = 'WebBoxDB';
-    const STORE_NAME = 'html_sites';
-    let db = null;
-    let activeFileId = null;
-    let sidebarOpen = window.innerWidth >= 768;
-    let currentBlobUrl = null;
+      <article id="musicWindow" class="window music-window hidden-window" data-app="Hudba" aria-label="Hudební přehrávač">
+        <div class="window-titlebar" data-drag-handle>
+          <div class="window-dots" aria-hidden="true">
+            <button class="dot-btn" data-window-action="close" aria-label="Zavřít okno" type="button">
+              <span class="dot close"></span>
+            </button>
+            <button class="dot-btn" data-window-action="min" aria-label="Minimalizovat okno" type="button">
+              <span class="dot min"></span>
+            </button>
+            <button class="dot-btn" data-window-action="max" aria-label="Přiblížit okno" type="button">
+              <span class="dot max"></span>
+            </button>
+          </div>
+          <h1>Hudba</h1>
+        </div>
+        <div class="window-content">
+          <div class="content-card" data-app-content="musicWindow">
+            <p>Načítám data...</p>
+          </div>
+        </div>
+      </article>
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      adjustSidebarOnResize();
-      window.addEventListener('resize', adjustSidebarOnResize);
-      setupDragAndDrop();
+      <article id="statsWindow" class="window stats-window hidden-window" data-app="Monitor" aria-label="Systémový monitor">
+        <div class="window-titlebar" data-drag-handle>
+          <div class="window-dots" aria-hidden="true">
+            <button class="dot-btn" data-window-action="close" aria-label="Zavřít okno" type="button">
+              <span class="dot close"></span>
+            </button>
+            <button class="dot-btn" data-window-action="min" aria-label="Minimalizovat okno" type="button">
+              <span class="dot min"></span>
+            </button>
+            <button class="dot-btn" data-window-action="max" aria-label="Přiblížit okno" type="button">
+              <span class="dot max"></span>
+            </button>
+          </div>
+          <h1>Monitor</h1>
+        </div>
+        <div class="window-content">
+          <div class="content-card" data-app-content="statsWindow">
+            <p>Načítám data...</p>
+          </div>
+        </div>
+      </article>
+    </main>
 
-      try {
-        await initDatabase();
-        await checkAndLoadInitialData();
-      } catch (err) {
-        showToast('Chyba pri inicializaci databaze: ' + err.message, 'error');
-      }
-    });
+    <nav class="panel" aria-label="Main panel">
+      <button id="menuButton" class="start-btn" aria-expanded="false" aria-controls="mintMenu" type="button">
+        <span class="mint-circle">M</span>
+        <span data-i18n="start">Start</span>
+      </button>
 
-    function initDatabase() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onupgradeneeded = (e) => {
-          const database = e.target.result;
-          if (!database.objectStoreNames.contains(STORE_NAME)) {
-            database.createObjectStore(STORE_NAME, { keyPath: 'id' });
-          }
-        };
-        request.onsuccess = (e) => {
-          db = e.target.result;
-          resolve(db);
-        };
-        request.onerror = (e) => reject(e.target.error);
-      });
-    }
+      <div id="taskbarApps" class="taskbar-apps" aria-label="Spuštěné aplikace"></div>
 
-    function saveSiteToDB(site) {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction([STORE_NAME], 'readwrite');
-        const request = transaction.objectStore(STORE_NAME).put(site);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-      });
-    }
+      <button id="themeToggle" class="theme-btn" type="button" aria-pressed="false" data-i18n="themeLight">Mint Light</button>
+      <button id="langToggle" class="theme-btn" type="button" aria-pressed="false">EN</button>
 
-    function getAllSitesFromDB() {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction([STORE_NAME], 'readonly');
-        const request = transaction.objectStore(STORE_NAME).getAll();
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(request.error);
-      });
-    }
+      <div class="clock" id="clock" aria-live="polite">00:00</div>
+    </nav>
 
-    function getSiteFromDB(id) {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction([STORE_NAME], 'readonly');
-        const request = transaction.objectStore(STORE_NAME).get(id);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-    }
+    <section id="mintMenu" class="mint-menu" hidden>
+      <h2 data-i18n="start">Start</h2>
+      <p class="menu-group-label" data-i18n="menuNavigation">Navigace</p>
+      <ul id="menuNavigationList"></ul>
 
-    function deleteSiteFromDB(id) {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction([STORE_NAME], 'readwrite');
-        const request = transaction.objectStore(STORE_NAME).delete(id);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-      });
-    }
+      <p class="menu-group-label" data-i18n="menuApps">Aplikace</p>
+      <ul id="menuAppsList"></ul>
 
-    async function checkAndLoadInitialData() {
-      const sites = await getAllSitesFromDB();
-      if (sites.length > 0) {
-        await renderFileList();
-        updateStorageEstimation();
-      } else {
-        await createWelcomeDemo();
-      }
-    }
+      <p class="menu-group-label" data-i18n="menuSystem">Systém</p>
+      <ul id="menuSystemList"></ul>
+    </section>
 
-    function setupDragAndDrop() {
-      const dragOverlay = document.getElementById('drag-overlay');
-      let dragCounter = 0;
-
-      window.addEventListener('dragenter', (e) => {
-        e.preventDefault();
-        dragCounter += 1;
-        if (dragCounter === 1) {
-          dragOverlay.classList.remove('opacity-0');
-          dragOverlay.classList.add('opacity-100');
-        }
-      });
-
-      window.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dragCounter = Math.max(0, dragCounter - 1);
-        if (dragCounter === 0) {
-          dragOverlay.classList.remove('opacity-100');
-          dragOverlay.classList.add('opacity-0');
-        }
-      });
-
-      window.addEventListener('dragover', (e) => e.preventDefault());
-
-      window.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        dragCounter = 0;
-        dragOverlay.classList.remove('opacity-100');
-        dragOverlay.classList.add('opacity-0');
-
-        const files = Array.from(e.dataTransfer.files);
-        const htmlFiles = files.filter((file) => /\.html?$/i.test(file.name));
-        if (htmlFiles.length === 0) {
-          showToast('Nebyly nalezeny zadne HTML soubory.', 'error');
-          return;
-        }
-
-        for (const file of htmlFiles) {
-          await processFile(file);
-        }
-      });
-    }
-
-    async function handleFileUpload(event) {
-      const files = Array.from(event.target.files);
-      for (const file of files) {
-        await processFile(file);
-      }
-      event.target.value = '';
-    }
-
-    function processFile(file) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const site = {
-            id: 'site_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-            name: file.name.replace(/\.html?$/i, ''),
-            content: e.target.result,
-            size: file.size,
-            uploadedAt: new Date().toLocaleDateString('cs-CZ') + ' ' + new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
-          };
-
-          await saveSiteToDB(site);
-          showToast('Web "' + site.name + '" byl nahran.', 'success');
-          await renderFileList();
-          await selectWeb(site.id);
-          updateStorageEstimation();
-          resolve();
-        };
-        reader.onerror = () => {
-          showToast('Nepodarilo se precist soubor ' + file.name, 'error');
-          resolve();
-        };
-        reader.readAsText(file);
-      });
-    }
-
-    async function renderFileList() {
-      const listContainer = document.getElementById('file-list-container');
-      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-      const sites = await getAllSitesFromDB();
-      const filteredSites = sites
-        .filter((site) => site.name.toLowerCase().includes(searchTerm))
-        .sort((a, b) => b.id.localeCompare(a.id));
-
-      listContainer.innerHTML = '';
-      if (filteredSites.length === 0) {
-        listContainer.innerHTML = '<div class="text-center py-8 text-slate-600 text-sm">' + (searchTerm ? 'Nebyl nalezen zadny odpovidajici web' : 'Zadne nahrane weby') + '</div>';
-        return;
-      }
-
-      filteredSites.forEach((site) => {
-        const isActive = site.id === activeFileId;
-        const formattedSize = (site.size / 1024).toFixed(1) + ' KB';
-        const item = document.createElement('div');
-        item.className = 'group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ' + (isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/15' : 'bg-slate-900/60 hover:bg-slate-900 text-slate-300 border border-slate-800/80 hover:border-slate-700/80');
-        item.onclick = () => selectWeb(site.id);
-
-        item.innerHTML =
-          '<div class="flex items-center space-x-3 overflow-hidden mr-2">' +
-          '<div class="p-2 rounded-lg shrink-0 ' + (isActive ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700 group-hover:text-slate-200 transition-colors') + '">' +
-          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>' +
-          '</div>' +
-          '<div class="overflow-hidden">' +
-          '<div class="font-medium text-sm truncate ' + (isActive ? 'text-white' : 'text-slate-200') + '">' + escapeHtml(site.name) + '</div>' +
-          '<div class="text-[10px] ' + (isActive ? 'text-blue-200' : 'text-slate-500') + ' flex items-center space-x-2 mt-0.5"><span>' + formattedSize + '</span><span>|</span><span>' + escapeHtml(site.uploadedAt) + '</span></div>' +
-          '</div>' +
-          '</div>' +
-          '<button class="opacity-0 group-hover:opacity-100 p-1.5 rounded-md transition-all ' + (isActive ? 'text-blue-200 hover:text-white hover:bg-blue-500' : 'text-slate-500 hover:text-red-400 hover:bg-slate-800') + '" title="Smazat" aria-label="Smazat">' +
-          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>' +
-          '</button>';
-
-        item.querySelector('button').onclick = (event) => {
-          event.stopPropagation();
-          deleteWeb(site.id, site.name);
-        };
-        listContainer.appendChild(item);
-      });
-    }
-
-    async function selectWeb(id) {
-      const site = await getSiteFromDB(id);
-      if (!site) return;
-
-      activeFileId = id;
-      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-
-      currentBlobUrl = URL.createObjectURL(new Blob([site.content], { type: 'text/html' }));
-      const iframe = document.getElementById('web-viewport');
-      const onboarding = document.getElementById('onboarding-screen');
-
-      onboarding.classList.add('opacity-0');
-      setTimeout(() => onboarding.classList.add('hidden'), 300);
-      iframe.classList.remove('hidden');
-      iframe.src = currentBlobUrl;
-
-      document.getElementById('current-web-title').innerText = site.name;
-      document.getElementById('current-web-meta').innerText = 'Velikost: ' + (site.size / 1024).toFixed(1) + ' KB | Nahrano: ' + site.uploadedAt;
-      document.getElementById('web-actions').style.display = 'flex';
-
-      await renderFileList();
-      if (window.innerWidth < 768) toggleSidebar(false);
-    }
-
-    function openInNewTab() {
-      if (currentBlobUrl) {
-        window.open(currentBlobUrl, '_blank');
-      } else {
-        showToast('Zadny web neni aktualne spusten.', 'error');
-      }
-    }
-
-    async function deleteWeb(id, name) {
-      if (!confirm('Opravdu chcete smazat web "' + name + '"?')) return;
-
-      await deleteSiteFromDB(id);
-      showToast('Web "' + name + '" byl smazan.', 'success');
-      if (activeFileId === id) resetViewport();
-      await renderFileList();
-      updateStorageEstimation();
-    }
-
-    async function deleteActiveWeb() {
-      if (!activeFileId) return;
-      const site = await getSiteFromDB(activeFileId);
-      if (site) await deleteWeb(site.id, site.name);
-    }
-
-    function resetViewport() {
-      activeFileId = null;
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = null;
-      }
-
-      const iframe = document.getElementById('web-viewport');
-      const onboarding = document.getElementById('onboarding-screen');
-      iframe.classList.add('hidden');
-      iframe.src = 'about:blank';
-      onboarding.classList.remove('hidden');
-      setTimeout(() => onboarding.classList.remove('opacity-0'), 50);
-      document.getElementById('current-web-title').innerText = 'Neni vybran zadny web';
-      document.getElementById('current-web-meta').innerText = 'Vyberte nebo nahrajte HTML soubor pro spusteni';
-      document.getElementById('web-actions').style.display = 'none';
-    }
-
-    function toggleSidebar(forceState = null) {
-      const sidebar = document.getElementById('sidebar');
-      const backdrop = document.getElementById('sidebar-backdrop');
-      sidebarOpen = forceState !== null ? forceState : !sidebarOpen;
-
-      if (sidebarOpen) {
-        sidebar.classList.remove('-translate-x-full');
-        if (window.innerWidth < 768) {
-          backdrop.classList.remove('hidden');
-          setTimeout(() => backdrop.classList.add('opacity-100'), 10);
-        }
-      } else {
-        sidebar.classList.add('-translate-x-full');
-        backdrop.classList.remove('opacity-100');
-        setTimeout(() => backdrop.classList.add('hidden'), 300);
-      }
-    }
-
-    function adjustSidebarOnResize() {
-      toggleSidebar(window.innerWidth >= 768);
-    }
-
-    async function loadDemoSites() {
-      const demo1 = {
-        id: 'demo_1',
-        name: 'Retro Klikadlo',
-        content: '<!DOCTYPE html><html lang="cs"><head><meta charset="UTF-8"><title>Retro Klikadlo</title><style>body{background:linear-gradient(135deg,#1e3c72,#2a5298);color:white;font-family:sans-serif;text-align:center;padding:50px;margin:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center}.card{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border-radius:20px;padding:40px;box-shadow:0 8px 32px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2)}h1{margin-bottom:10px;font-size:32px}.counter{font-size:64px;font-weight:bold;color:#ffeb3b;margin:20px 0}button{background:#e91e63;color:white;border:0;padding:15px 40px;font-size:18px;font-weight:bold;border-radius:50px;cursor:pointer;transition:all .2s}button:hover{background:#ff4081;transform:translateY(-3px)}</style></head><body><div class="card"><h1>Retro Klikadlo</h1><p>Jednoducha interaktivni ukazka bezici v sandboxu.</p><div class="counter" id="clicks">0</div><button onclick="document.getElementById(\'clicks\').innerText=parseInt(document.getElementById(\'clicks\').innerText)+1">Kliknout</button></div></body></html>',
-        size: 1350,
-        uploadedAt: 'Predinstalovano'
-      };
-
-      const demo2 = {
-        id: 'demo_2',
-        name: 'Moderni Profilova Karta',
-        content: '<!DOCTYPE html><html lang="cs"><head><meta charset="UTF-8"><title>Profilova Vizitka</title><style>body{background-color:#0f172a;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;font-family:system-ui,sans-serif;color:#f8fafc}.profile-card{background:#1e293b;border:1px solid #334155;border-radius:24px;padding:32px;width:320px;text-align:center;box-shadow:0 20px 25px -5px rgb(0 0 0 / .5)}.avatar{width:100px;height:100px;background:linear-gradient(to right,#3b82f6,#ec4899);border-radius:50%;margin:0 auto 20px;display:flex;justify-content:center;align-items:center;font-size:40px}h2{margin:0 0 8px;font-size:24px}.tag{color:#3b82f6;font-size:14px;font-weight:600;text-transform:uppercase;display:inline-block;margin-bottom:16px}p{color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 24px}.btn-connect{display:block;background:#3b82f6;color:white;text-decoration:none;padding:12px;border-radius:12px;font-weight:600}</style></head><body><div class="profile-card"><div class="avatar">KV</div><h2>Kuba Vyvojar</h2><span class="tag">Fullstack & Architekt</span><p>Fiktivni profilova karta pro rychle otestovani vykresleni v sandboxu.</p><a href="#" class="btn-connect" onclick="alert(\'Diky za spojeni.\');return false;">Spojit se</a></div></body></html>',
-        size: 1450,
-        uploadedAt: 'Predinstalovano'
-      };
-
-      await saveSiteToDB(demo1);
-      await saveSiteToDB(demo2);
-      showToast('Ukazkove weby byly nahrany.', 'success');
-      await renderFileList();
-      updateStorageEstimation();
-      await selectWeb('demo_1');
-    }
-
-    async function createWelcomeDemo() {
-      const welcome = {
-        id: 'welcome_demo',
-        name: 'Prvni ukazkovy web',
-        content: '<!DOCTYPE html><html lang="cs"><head><meta charset="UTF-8"><title>Vitejte</title><style>body{background-color:#f8fafc;font-family:system-ui,sans-serif;color:#1e293b;padding:40px;text-align:center}.container{max-width:600px;margin:100px auto;background:white;padding:30px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.05)}h1{color:#2563eb}p{line-height:1.6;color:#64748b}</style></head><body><div class="container"><h1>Vitejte ve WebBoxu</h1><p>Toto je prvni spusteny web v sandboxu. V bocni liste muzete nahrat vlastni HTML soubor.</p></div></body></html>',
-        size: 650,
-        uploadedAt: 'System'
-      };
-      await saveSiteToDB(welcome);
-      await renderFileList();
-      updateStorageEstimation();
-    }
-
-    async function resetToDemo() {
-      if (confirm('Vlozit ukazkove weby? Stavajici nahrane weby budou zachovany.')) {
-        await loadDemoSites();
-      }
-    }
-
-    function escapeHtml(str) {
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      const bgClass = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
-      const icon = type === 'success'
-        ? '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
-        : '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
-
-      toast.className = 'flex items-center space-x-2 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-2 opacity-0 ' + bgClass + ' pointer-events-auto';
-      toast.innerHTML = icon + '<span>' + escapeHtml(message) + '</span>';
-      container.appendChild(toast);
-
-      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
-
-    function updateStorageEstimation() {
-      const status = document.getElementById('storage-status');
-      if (navigator.storage && navigator.storage.estimate) {
-        navigator.storage.estimate().then((estimate) => {
-          const usedMb = (estimate.usage / (1024 * 1024)).toFixed(2);
-          status.innerText = 'Vyuzito: ' + usedMb + ' MB pameti';
-        }).catch(() => {
-          status.innerText = 'Kapacita: OK';
-        });
-      } else {
-        status.innerText = 'Uloziste aktivni';
-      }
-    }
-  </script>
-</body>
+    <script type="module" src="assets/scripts/main.js"></script>
+  </body>
 </html>

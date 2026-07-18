@@ -1,0 +1,73 @@
+.icon-grid {
+  display: grid;
+  width: 110px;
+  gap: 14px;
+}
+
+.desktop-icon {
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #0e2219;
+  background: linear-gradient(145deg, #c9f7dd, #72cc99);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.35);
+}
+
+.taskbar-apps {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 220px;
+}
+
+.task-btn {
+  border: 1px solid rgba(208, 255, 227, 0.25);
+  border-radius: 7px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+}
+
+.task-btn.minimized {
+  opacity: 0.72;
+}
+
+.task-btn.active {
+  background: rgba(137, 240, 186, 0.24);
+  border-color: rgba(208, 255, 227, 0.55);
+}
+
+@media (max-width: 700px) {
+  .icon-grid {
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+  }
+
+  .desktop-icon {
+    align-items: flex-start;
+  }
+
+  .taskbar-apps {
+    min-width: 0;
+    overflow-x: auto;
+    max-width: 45vw;
+  }
+}
