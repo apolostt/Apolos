@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Apolos Shield</string>
+
+    <!-- Notification channels -->
+    <string name="channel_alert">Security alerts</string>
+    <string name="channel_alert_desc">High-priority alarms for camera, microphone and screen access.</string>
+    <string name="channel_status">Protection status</string>
+    <string name="channel_status_desc">Ongoing monitoring and VPN status.</string>
+
+    <!-- Camera / mic / screen alerts -->
+    <string name="alert_camera_title">Camera activated</string>
+    <string name="alert_camera_detail">An app just started using the camera (id %1$s).</string>
+    <string name="info_camera_released_title">Camera released</string>
+    <string name="info_camera_released_detail">The camera is no longer in use.</string>
+    <string name="alert_mic_title">Microphone activated</string>
+    <string name="alert_mic_detail">%1$d recording session(s) are using the microphone.</string>
+    <string name="info_mic_released_title">Microphone released</string>
+    <string name="info_mic_released_detail">The microphone is no longer in use.</string>
+    <string name="alert_screen_title">Screen capture detected</string>
+    <string name="alert_screen_detail">A secondary display appeared: %1$s. Your screen may be recorded or cast.</string>
+    <string name="info_screen_released_title">Screen capture ended</string>
+    <string name="info_screen_released_detail">No external display is active.</string>
+
+    <!-- App / traffic -->
+    <string name="warn_apps_title">%1$d high-risk apps found</string>
+    <string name="traffic_top_title">Top data users (last hour)</string>
+    <string name="alert_exfil_title">Possible data exfiltration</string>
+    <string name="alert_exfil_detail">%1$s uploaded %2$s and is flagged high-risk.</string>
+
+    <!-- VPN -->
+    <string name="vpn_running">Protective VPN running (%1$s)</string>
+    <string name="vpn_failed">VPN could not start: %1$s</string>
+    <string name="vpn_no_permission">VPN permission was not granted.</string>
+    <string name="vpn_started_title">VPN started</string>
+    <string name="vpn_started_detail">Mode: %1$s</string>
+    <string name="vpn_stopped_title">VPN stopped</string>
+    <string name="vpn_stopped_detail">The protective tunnel is off.</string>
+    <string name="vpn_error_title">VPN error</string>
+    <string name="wg_connected_title">WireGuard connected</string>
+    <string name="wg_connected_detail">Encrypted tunnel to your VPN provider is up.</string>
+    <string name="wg_error_title">WireGuard error</string>
+
+    <!-- Service -->
+    <string name="monitoring_active">Monitoring active — camera, mic, screen, apps &amp; traffic.</string>
+
+    <!-- Dashboard -->
+    <string name="dismiss">Dismiss</string>
+    <string name="threat_level">Threat level</string>
+    <string name="threat_critical">CRITICAL</string>
+    <string name="threat_warning">Attention</string>
+    <string name="threat_ok">Protected</string>
+    <string name="chip_camera">Camera</string>
+    <string name="chip_mic">Microphone</string>
+    <string name="chip_screen">Screen</string>
+    <string name="st_monitoring">Monitoring</string>
+    <string name="st_vpn">VPN</string>
+    <string name="st_blocked">DNS blocked</string>
+    <string name="st_flagged">Flagged apps</string>
+    <string name="controls">Controls</string>
+    <string name="start_protection">Start protection</string>
+    <string name="stop">Stop</string>
+    <string name="vpn_section">Protective VPN</string>
+    <string name="vpn_dns">DNS filter</string>
+    <string name="vpn_kill">Kill-switch</string>
+    <string name="vpn_wireguard">Free VPN (WireGuard)</string>
+    <string name="vpn_off">VPN off</string>
+    <string name="permissions">Permissions</string>
+    <string name="grant_notifications">Grant notifications</string>
+    <string name="grant_usage">Grant usage access (traffic stats)</string>
+    <string name="flagged_apps">Flagged apps</string>
+    <string name="recent_events">Recent events</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+
+    <!-- WireGuard dialog -->
+    <string name="wg_title">Import free VPN config</string>
+    <string name="wg_hint">Paste a WireGuard configuration from a free provider (e.g. ProtonVPN free tier). Set DNS in the config to a filtering resolver for extra protection.</string>
+    <string name="connect">Connect</string>
+    <string name="cancel">Cancel</string>
+</resources>
