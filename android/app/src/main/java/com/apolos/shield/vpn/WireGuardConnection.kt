@@ -31,63 +31,93 @@ object WireGuardConnection {
         override fun onStateChange(newState: Tunnel.State) = onState(newState)
     }
 
-    fun connect(context: Context, confText: String): Boolean {
-        // Parse first. A bad config throws here before any VPN is touched, so on
-        // failure we must leave whatever is currently active (DNS filter,
-        // kill-switch, or an already-running WireGuard tunnel) exactly as-is.
+    private const val MODE_WIREGUARD = "wireguard"
+
+    fun connect(context: Context, confText: String) {
+        val appCtx = context.applicationContext
+
+        // Parse first (cheap, main-thread-safe). A bad config throws here before
+        // any VPN is touched, so on failure we leave whatever is currently active
+        // (DNS filter, kill-switch, or an already-running WireGuard tunnel) as-is.
         val config = try {
             Config.parse(StringReader(confText).buffered())
         } catch (e: Exception) {
             SecurityState.addEvent(
                 EventKind.VPN, Severity.WARNING,
-                context.getString(com.apolos.shield.R.string.wg_error_title),
+                appCtx.getString(com.apolos.shield.R.string.wg_error_title),
                 e.message ?: "invalid config",
             )
-            return false
+            return
         }
 
-        // A local ShieldVpnService tunnel (kill-switch drops everything, DNS mode
-        // routes port 53) would otherwise still intercept traffic while GoBackend
-        // resolves the peer Endpoint hostname, so tear it down first — only one
-        // VpnService can be active at a time anyway.
-        ShieldVpnService.stop(context)
+        // Remember what protection is active so we can restore it if the switch
+        // fails partway through.
+        val previousMode = SecurityState.status.value.vpnMode
 
-        return try {
-            val be = backend ?: GoBackend(context.applicationContext).also { backend = it }
-            val t = ApolosTunnel { state ->
-                val up = state == Tunnel.State.UP
-                SecurityState.updateStatus {
-                    it.copy(vpnActive = up, vpnMode = if (up) "wireguard" else ShieldVpnService.MODE_OFF)
-                }
-            }.also { tunnel = it }
-            be.setState(t, Tunnel.State.UP, config)
-            SecurityState.addEvent(
-                EventKind.VPN, Severity.INFO,
-                context.getString(com.apolos.shield.R.string.wg_connected_title),
-                context.getString(com.apolos.shield.R.string.wg_connected_detail),
-            )
-            true
-        } catch (e: Exception) {
-            // The backend actually tried to bring the tunnel up and failed, so no
-            // VPN is active now (the local tunnel was already stopped above).
-            SecurityState.updateStatus {
-                it.copy(vpnActive = false, vpnMode = ShieldVpnService.MODE_OFF)
+        // GoBackend.setState starts its own VpnService and blocks until that
+        // service's onCreate completes — and those lifecycle callbacks are posted
+        // to the main thread. Running this on the main thread would therefore
+        // dead-lock the first connection, so do all of it on a background thread.
+        Thread({
+            // A local ShieldVpnService tunnel (kill-switch drops everything, DNS
+            // mode routes port 53) would otherwise intercept the peer Endpoint
+            // hostname resolution, so tear it down first — only one VpnService can
+            // be active at a time anyway.
+            if (previousMode == ShieldVpnService.MODE_DNS || previousMode == ShieldVpnService.MODE_KILLSWITCH) {
+                ShieldVpnService.stop(appCtx)
             }
-            SecurityState.addEvent(
-                EventKind.VPN, Severity.WARNING,
-                context.getString(com.apolos.shield.R.string.wg_error_title),
-                e.message ?: "connect failed",
-            )
-            false
-        }
+            try {
+                val be = backend ?: GoBackend(appCtx).also { backend = it }
+                val t = ApolosTunnel { state ->
+                    val up = state == Tunnel.State.UP
+                    SecurityState.updateStatus {
+                        it.copy(vpnActive = up, vpnMode = if (up) MODE_WIREGUARD else ShieldVpnService.MODE_OFF)
+                    }
+                }
+                be.setState(t, Tunnel.State.UP, config)
+                // Only adopt the new handle once the tunnel is actually up; on a
+                // failed replacement GoBackend keeps the previous tunnel and the
+                // old handle must stay valid for disconnect().
+                tunnel = t
+                SecurityState.addEvent(
+                    EventKind.VPN, Severity.INFO,
+                    appCtx.getString(com.apolos.shield.R.string.wg_connected_title),
+                    appCtx.getString(com.apolos.shield.R.string.wg_connected_detail),
+                )
+            } catch (e: Exception) {
+                SecurityState.addEvent(
+                    EventKind.VPN, Severity.WARNING,
+                    appCtx.getString(com.apolos.shield.R.string.wg_error_title),
+                    e.message ?: "connect failed",
+                )
+                // Restore whatever protection we displaced so a failed switch
+                // doesn't silently leave the device unprotected.
+                when (previousMode) {
+                    ShieldVpnService.MODE_DNS, ShieldVpnService.MODE_KILLSWITCH ->
+                        ShieldVpnService.start(appCtx, previousMode)
+                    MODE_WIREGUARD -> {
+                        // GoBackend restored the previously-active tunnel; leave
+                        // the dashboard reflecting it as still connected.
+                    }
+                    else -> SecurityState.updateStatus {
+                        it.copy(vpnActive = false, vpnMode = ShieldVpnService.MODE_OFF)
+                    }
+                }
+            }
+        }, "apolos-wg-connect").start()
     }
 
     fun disconnect(context: Context) {
         val be = backend ?: return
         val t = tunnel ?: return
-        runCatching { be.setState(t, Tunnel.State.DOWN, null) }
-        SecurityState.updateStatus {
-            it.copy(vpnActive = false, vpnMode = ShieldVpnService.MODE_OFF)
-        }
+        // setState also blocks on the VpnService lifecycle, so keep it off the
+        // main thread as well.
+        Thread({
+            runCatching { be.setState(t, Tunnel.State.DOWN, null) }
+            tunnel = null
+            SecurityState.updateStatus {
+                it.copy(vpnActive = false, vpnMode = ShieldVpnService.MODE_OFF)
+            }
+        }, "apolos-wg-disconnect").start()
     }
 }
