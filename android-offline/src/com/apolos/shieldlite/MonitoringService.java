@@ -15,6 +15,9 @@ public class MonitoringService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // Boot-triggered starts never go through MainActivity, so the
+        // notification channels must be created here too (idempotent).
+        Notifier.ensureChannels(this);
         cameraMic = new CameraMicMonitor(this);
     }
 

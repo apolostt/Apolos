@@ -89,15 +89,16 @@ object SecurityState {
     fun clearAlarm() { _alarm.value = null }
 
     private fun recomputeThreat() {
-        val s = _status.value
-        val activeCritical = s.cameraInUse || s.micInUse || s.screenCaptured
         val recentCritical = _events.value.take(5).any { it.severity == Severity.CRITICAL }
-        val threat = when {
-            activeCritical || recentCritical -> Severity.CRITICAL
-            s.flaggedApps > 0 || !s.vpnActive -> Severity.WARNING
-            else -> Severity.INFO
+        _status.update { s ->
+            val activeCritical = s.cameraInUse || s.micInUse || s.screenCaptured
+            val threat = when {
+                activeCritical || recentCritical -> Severity.CRITICAL
+                s.flaggedApps > 0 || !s.vpnActive -> Severity.WARNING
+                else -> Severity.INFO
+            }
+            if (threat == s.threat) s else s.copy(threat = threat)
         }
-        if (threat != s.threat) _status.value = s.copy(threat = threat)
     }
 
     private const val MAX_EVENTS = 200

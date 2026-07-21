@@ -68,8 +68,9 @@ import com.apolos.shield.ui.theme.ShieldGreen
 import com.apolos.shield.ui.theme.ShieldRed
 import com.apolos.shield.vpn.ShieldVpnService
 import com.apolos.shield.vpn.WireGuardConnection
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
@@ -277,16 +278,20 @@ private fun Dashboard() {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringRes(ctx, R.string.permissions), fontWeight = FontWeight.Bold)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            OutlinedButton(
+                                onClick = { notifLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS) },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text(stringRes(ctx, R.string.grant_notifications)) }
+                        }
                         OutlinedButton(
                             onClick = {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    notifLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                try {
+                                    ctx.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                                } catch (_: android.content.ActivityNotFoundException) {
+                                    // No usage-access settings screen on this device/distribution.
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text(stringRes(ctx, R.string.grant_notifications)) }
-                        OutlinedButton(
-                            onClick = { ctx.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) },
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text(stringRes(ctx, R.string.grant_usage)) }
                     }
@@ -372,7 +377,7 @@ private fun EventRow(e: SecurityEvent) {
     Column(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(e.title, fontWeight = FontWeight.Bold, color = color)
-            Text(timeFmt.format(Date(e.timestamp)), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(timeFmt.format(Instant.ofEpochMilli(e.timestamp)), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text(e.detail, fontSize = 13.sp)
     }
@@ -406,7 +411,8 @@ private fun WireGuardDialog(onDismiss: () -> Unit, onConnect: (String) -> Unit) 
     )
 }
 
-private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+private val timeFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.getDefault())
+    .withZone(ZoneId.systemDefault())
 
 private fun boolText(ctx: android.content.Context, v: Boolean): String =
     stringRes(ctx, if (v) R.string.on else R.string.off)

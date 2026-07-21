@@ -25,21 +25,21 @@ class ScreenMonitor(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
 
     private val listener = object : DisplayManager.DisplayListener {
-        override fun onDisplayAdded(displayId: Int) = evaluate(added = displayId)
-        override fun onDisplayRemoved(displayId: Int) = evaluate(added = null)
-        override fun onDisplayChanged(displayId: Int) = evaluate(added = null)
+        override fun onDisplayAdded(displayId: Int) = evaluate()
+        override fun onDisplayRemoved(displayId: Int) = evaluate()
+        override fun onDisplayChanged(displayId: Int) = evaluate()
     }
 
     fun start() {
         dm.registerDisplayListener(listener, handler)
-        evaluate(added = null)
+        evaluate()
     }
 
     fun stop() {
         runCatching { dm.unregisterDisplayListener(listener) }
     }
 
-    private fun evaluate(added: Int?) {
+    private fun evaluate() {
         val extra = dm.displays.filter { isCaptureDisplay(it) }
         val capturing = extra.isNotEmpty()
         val was = SecurityState.status.value.screenCaptured
@@ -67,8 +67,9 @@ class ScreenMonitor(private val context: Context) {
         val flags = d.flags
         val presentation = (flags and Display.FLAG_PRESENTATION) != 0
         val private = (flags and Display.FLAG_PRIVATE) != 0
-        // Virtual displays used by screen recorders/cast are typically non-default
-        // and often private/presentation.
-        return presentation || private || d.state == Display.STATE_ON
+        // MediaProjection-backed screen recorders/cast create Display.TYPE_VIRTUAL
+        // displays; checking STATE_ON here would also flag ordinary external
+        // monitors/HDMI/Miracast, which are not a privacy concern.
+        return d.type == Display.TYPE_VIRTUAL || presentation || private
     }
 }

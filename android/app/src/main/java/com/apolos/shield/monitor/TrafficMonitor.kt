@@ -4,6 +4,7 @@ import android.app.usage.NetworkStats
 import android.app.usage.NetworkStatsManager
 import android.content.Context
 import android.net.ConnectivityManager
+import com.apolos.shield.alarm.Notifier
 import com.apolos.shield.core.EventKind
 import com.apolos.shield.core.SecurityState
 import com.apolos.shield.core.Severity
@@ -50,7 +51,7 @@ class TrafficMonitor(private val context: Context) {
         for (t in top) {
             val pkg = pm.getPackagesForUid(t.uid)?.firstOrNull() ?: continue
             if (pkg in flagged && t.tx > 5L * 1024 * 1024) { // >5 MB uploaded
-                SecurityState.addEvent(
+                val e = SecurityState.addEvent(
                     EventKind.TRAFFIC, Severity.CRITICAL,
                     context.getString(com.apolos.shield.R.string.alert_exfil_title),
                     context.getString(
@@ -58,6 +59,7 @@ class TrafficMonitor(private val context: Context) {
                         shortName(t.label), human(t.tx),
                     ),
                 )
+                Notifier.alert(context, e)
             }
         }
     }

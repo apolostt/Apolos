@@ -49,10 +49,12 @@ object WireGuardConnection {
             )
             true
         } catch (e: Exception) {
-            // Parsing or bringing up the tunnel failed — make sure the dashboard
-            // doesn't keep showing an active/stale VPN state from this attempt.
+            // Parsing or bringing up the tunnel can fail before touching the
+            // system VPN at all (e.g. a bad config), in which case another
+            // VPN (DNS filter / kill-switch) may still be genuinely active —
+            // only clear the status if this attempt was the one reflected in it.
             SecurityState.updateStatus {
-                it.copy(vpnActive = false, vpnMode = ShieldVpnService.MODE_OFF)
+                if (it.vpnMode == "wireguard") it.copy(vpnActive = false, vpnMode = ShieldVpnService.MODE_OFF) else it
             }
             SecurityState.addEvent(
                 EventKind.VPN, Severity.WARNING,

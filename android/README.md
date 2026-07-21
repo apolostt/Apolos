@@ -20,13 +20,13 @@ mikrofon nebo obrazovku.
 | 🎙️ **Detekce mikrofonu** | `AudioManager.AudioRecordingCallback` — aktivní nahrávání = alarm. |
 | 🖥️ **Detekce obrazovky** | `DisplayManager` — nový druhý/virtuální displej (typicky nahrávání nebo cast) = alarm. |
 | 🧭 **Chování aplikací** | Sken nainstalovaných aplikací, rizikové skóre podle kombinace oprávnění (kamera+mikrofon+poloha+SMS…) a sideloadu. |
-| 📊 **Tok dat** | `NetworkStatsManager` — největší „upovídané" aplikace za hodinu; vysoký upload rizikové aplikace = podezření na únik dat. |
+| 📊 **Tok dat** | `NetworkStatsManager` — největší „upovídané“ aplikace za hodinu; vysoký upload rizikové aplikace = podezření na únik dat. |
 | 🔒 **Ochranná VPN** | Lokální tunel bez cizího serveru: **DNS filtr** (blokuje trackery/malware doménám v celém systému) nebo **kill-switch** (okamžité odstřižení sítě). |
 | 🌐 **Free VPN (WireGuard)** | Import konfigurace zdarma poskytovaného WireGuardu (např. free tier ProtonVPN) = šifrovaný tunel ven. |
-| 🚨 **Alarm** | Banner na hlavní stránce + heads-up notifikace s alarmovým zvukem a vibracemi (bypass „Nerušit"). |
+| 🚨 **Alarm** | Banner na hlavní stránce + heads-up notifikace s alarmovým zvukem a vibracemi (bypass „Nerušit“). |
 | 🔁 **Trvalý běh** | Foreground služba + spuštění po restartu. |
 
-## „Několikanásobné" zabezpečení a limity VPN
+## „Několikanásobné“ zabezpečení a limity VPN
 
 Android bez rootu dovolí **jen jednu aktivní VPN** současně — nelze doslova
 skládat několik tunelů za sebou. Vícevrstvá ochrana je zde řešena takto:
@@ -36,7 +36,7 @@ skládat několik tunelů za sebou. Vícevrstvá ochrana je zde řešena takto:
 3. **Kill-switch** jako nouzové odstřižení, plus
 4. **Firewall/behaviorální monitoring** aplikací a datového toku běžící souběžně.
 
-Tip: do WireGuard konfigurace nastav `DNS = ` na filtrující resolver — získáš
+Tip: do WireGuard konfigurace nastav `DNS = <resolver>` na filtrující resolver — získáš
 šifrovaný tunel i filtrování domén najednou.
 
 ## Sestavení APK
@@ -65,7 +65,8 @@ podpisový standard pro moderní Android.
 
 Ověření po sestavení:
 ```bash
-$ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose --print-certs \
+BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+"$BT/apksigner" verify --verbose --print-certs \
     app/build/outputs/apk/release/app-release.apk
 ```
 
@@ -81,7 +82,7 @@ Nástroj je určený k ochraně **vlastního** zařízení. Sledování cizího 
 bez souhlasu je nezákonné.
 
 ## Struktura
-```
+```text
 android/
 ├── app/src/main/java/com/apolos/shield/
 │   ├── MainActivity.kt            # dashboard + alarm banner (Compose)

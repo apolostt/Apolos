@@ -14,6 +14,7 @@ import com.apolos.shield.MainActivity
 import com.apolos.shield.R
 import com.apolos.shield.core.SecurityEvent
 import com.apolos.shield.core.Severity
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Owns the notification channels and turns [SecurityEvent]s into heads-up
@@ -26,7 +27,7 @@ object Notifier {
     const val CHANNEL_STATUS = "apolos_status"
     const val FOREGROUND_ID = 1001
     const val VPN_FOREGROUND_ID = 1002
-    private var alertId = 2000
+    private val alertId = AtomicInteger(2000)
 
     fun ensureChannels(ctx: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -98,7 +99,7 @@ object Notifier {
             .build()
 
         try {
-            ctx.getSystemService(NotificationManager::class.java).notify(alertId++, n)
+            ctx.getSystemService(NotificationManager::class.java).notify(alertId.getAndIncrement(), n)
         } catch (_: SecurityException) {
             // POST_NOTIFICATIONS not granted — dashboard alarm banner still fires.
         }

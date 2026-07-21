@@ -54,6 +54,8 @@ class CameraMicMonitor(private val context: Context) {
     }
 
     fun start() {
+        stop() // idempotent: tear down any previous registration first
+        unavailableCameras.clear()
         thread = HandlerThread("apolos-cam-mic").also { it.start() }
         handler = Handler(thread!!.looper)
 
@@ -64,10 +66,14 @@ class CameraMicMonitor(private val context: Context) {
 
         try {
             audioManager.registerAudioRecordingCallback(audioCallback, handler)
-            onMicStateChanged(
-                active = audioManager.activeRecordingConfigurations.isNotEmpty(),
-                count = audioManager.activeRecordingConfigurations.size,
-            )
+            // Run on the same handler as the async callback to avoid a race
+            // between this snapshot and a concurrent onRecordingConfigChanged.
+            handler?.post {
+                onMicStateChanged(
+                    active = audioManager.activeRecordingConfigurations.isNotEmpty(),
+                    count = audioManager.activeRecordingConfigurations.size,
+                )
+            }
         } catch (_: Exception) { }
     }
 
