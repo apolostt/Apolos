@@ -96,18 +96,20 @@ class AppBehaviorMonitor(private val context: Context) {
         }
     }
 
-    private fun grantedPermissions(pm: PackageManager, pkg: String): Set<String> = try {
-        val pi = pm.getPackageInfo(pkg, PackageManager.GET_PERMISSIONS)
-        val requested = pi.requestedPermissions ?: return emptySet()
-        val flags = pi.requestedPermissionsFlags
-        buildSet {
-            requested.forEachIndexed { i, p ->
-                val isGranted = flags != null &&
-                    (flags[i] and android.content.pm.PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0
-                if (isGranted) add(p)
+    private fun grantedPermissions(pm: PackageManager, pkg: String): Set<String> {
+        return try {
+            val pi = pm.getPackageInfo(pkg, PackageManager.GET_PERMISSIONS)
+            val requested = pi.requestedPermissions ?: return emptySet()
+            val flags = pi.requestedPermissionsFlags
+            buildSet {
+                requested.forEachIndexed { i, p ->
+                    val isGranted = flags != null &&
+                        (flags[i] and android.content.pm.PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0
+                    if (isGranted) add(p)
+                }
             }
-        }
-    } catch (_: Exception) { emptySet() }
+        } catch (_: Exception) { emptySet() }
+    }
 
     @Suppress("DEPRECATION")
     private fun isFromTrustedStore(pm: PackageManager, pkg: String): Boolean = try {

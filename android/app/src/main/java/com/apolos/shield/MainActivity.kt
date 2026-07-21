@@ -1,5 +1,6 @@
 package com.apolos.shield
 
+import android.app.Activity
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
@@ -101,7 +102,7 @@ private fun Dashboard() {
     val vpnPrepareLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == ComponentActivity.RESULT_OK) {
+        if (result.resultCode == Activity.RESULT_OK) {
             val conf = pendingWgConf
             val mode = pendingVpnMode
             when {
