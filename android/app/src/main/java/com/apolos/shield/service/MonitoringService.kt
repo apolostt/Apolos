@@ -18,6 +18,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Always-on foreground service. Holds the real-time camera/mic watcher and runs
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 class MonitoringService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val started = AtomicBoolean(false)
     private lateinit var cameraMic: CameraMicMonitor
     private lateinit var screen: ScreenMonitor
     private lateinit var appMonitor: AppBehaviorMonitor
@@ -46,6 +48,11 @@ class MonitoringService : Service() {
             Notifier.foregroundNotification(this, getString(R.string.monitoring_active)),
         )
         SecurityState.updateStatus { it.copy(monitoringActive = true) }
+
+        // onStartCommand can be re-delivered (sticky restart, repeated "Start
+        // protection" taps) while already running; only wire up listeners and
+        // scan loops once per service instance.
+        if (started.getAndSet(true)) return START_STICKY
 
         cameraMic.start()
         screen.start()
@@ -71,6 +78,7 @@ class MonitoringService : Service() {
         cameraMic.stop()
         screen.stop()
         scope.cancel()
+        started.set(false)
         SecurityState.updateStatus { it.copy(monitoringActive = false) }
         super.onDestroy()
     }

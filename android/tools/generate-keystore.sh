@@ -29,6 +29,10 @@ keyAlias=$ALIAS
 keyPassword=$KEYPASS
 EOF
 
+# Both files hold the private key / plaintext passwords — keep them readable
+# only by the current user.
+chmod 600 "$KEYSTORE" "$PROPS"
+
 echo "Created $KEYSTORE and $PROPS"
 echo "Now build:  ./gradlew assembleRelease"
 echo "APK signing scheme v1+v2+v3+v4 is enabled in app/build.gradle.kts"

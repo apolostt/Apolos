@@ -2,7 +2,10 @@ name: Build Apolos Shield APK
 
 on:
   push:
-    branches: [ "claude/android-security-vpn-app-hufcjo" ]
+    branches: [ "main", "claude/android-security-vpn-app-hufcjo" ]
+    paths: [ "android/**", ".github/workflows/android-build.yml" ]
+  pull_request:
+    branches: [ "main" ]
     paths: [ "android/**", ".github/workflows/android-build.yml" ]
   workflow_dispatch:
 

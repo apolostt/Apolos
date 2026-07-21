@@ -24,9 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * remote provider:
  *
  *  - DNS filtering: only DNS is routed into the tunnel; tracker/malware
- *    look-ups are answered with NXDOMAIN, everything else is forwarded to an
- *    encrypted-capable upstream resolver. Acts as a system-wide ad/tracker
- *    blocker for every app.
+ *    look-ups are answered with NXDOMAIN, everything else is forwarded in
+ *    plaintext over UDP/53 to [UPSTREAM_DNS] (queries are not encrypted —
+ *    only filtered). Acts as a system-wide ad/tracker blocker for every app.
  *  - Kill-switch: routes *all* traffic into the tunnel and drops it — an
  *    instant "cut the network" panic button (e.g. the moment spyware is found).
  *
@@ -44,7 +44,15 @@ class ShieldVpnService : VpnService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> { stopTunnel(); stopSelf(); return START_NOT_STICKY }
-            else -> mode = intent?.getStringExtra(EXTRA_MODE) ?: MODE_DNS
+            else -> {
+                val requestedMode = intent?.getStringExtra(EXTRA_MODE) ?: MODE_DNS
+                if (running.get() && requestedMode != mode) {
+                    // Switching modes (e.g. DNS filter -> kill-switch) needs a fresh
+                    // TUN with different routes, not just a flipped mode flag.
+                    stopTunnel()
+                }
+                mode = requestedMode
+            }
         }
         filter = DnsFilter(this)
         startForeground(
@@ -186,7 +194,9 @@ class ShieldVpnService : VpnService() {
 
         private const val VIRTUAL_ADDR = "10.111.222.1"
         private const val VIRTUAL_DNS = "10.111.222.2"
-        // Cloudflare resolver; swap for any DoH/DoT-capable resolver you trust.
+        // Cloudflare resolver, queried in plaintext over UDP/53 (see forwardDns()).
+        // This mode only filters queries, it does not encrypt them; use the
+        // WireGuard mode instead if you need an encrypted DNS path too.
         private const val UPSTREAM_DNS = "1.1.1.1"
 
         fun start(context: Context, mode: String) {

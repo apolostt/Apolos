@@ -147,8 +147,11 @@ private fun Dashboard() {
             TopAppBar(title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Security, null, tint = threatColor)
-                    Spacer(Modifier.height(0.dp))
-                    Text("  ${stringRes(ctx, R.string.app_name)}", fontWeight = FontWeight.Bold)
+                    Text(
+                        stringRes(ctx, R.string.app_name),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
                 }
             })
         }

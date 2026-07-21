@@ -49,6 +49,11 @@ object WireGuardConnection {
             )
             true
         } catch (e: Exception) {
+            // Parsing or bringing up the tunnel failed — make sure the dashboard
+            // doesn't keep showing an active/stale VPN state from this attempt.
+            SecurityState.updateStatus {
+                it.copy(vpnActive = false, vpnMode = ShieldVpnService.MODE_OFF)
+            }
             SecurityState.addEvent(
                 EventKind.VPN, Severity.WARNING,
                 context.getString(com.apolos.shield.R.string.wg_error_title),
