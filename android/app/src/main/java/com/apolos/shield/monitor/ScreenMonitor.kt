@@ -67,9 +67,11 @@ class ScreenMonitor(private val context: Context) {
         val flags = d.flags
         val presentation = (flags and Display.FLAG_PRESENTATION) != 0
         val private = (flags and Display.FLAG_PRIVATE) != 0
-        // MediaProjection-backed screen recorders/cast create Display.TYPE_VIRTUAL
-        // displays; checking STATE_ON here would also flag ordinary external
-        // monitors/HDMI/Miracast, which are not a privacy concern.
-        return d.type == Display.TYPE_VIRTUAL || presentation || private
+        // Display.getType()/TYPE_VIRTUAL is a hidden/@SystemApi member (not part
+        // of the public SDK, so it can't be called from an app), hence relying
+        // only on the public presentation/private flags here. This is narrower
+        // than also checking STATE_ON, which would flag any ordinary external
+        // monitor/HDMI/Miracast display as a "capture".
+        return presentation || private
     }
 }
