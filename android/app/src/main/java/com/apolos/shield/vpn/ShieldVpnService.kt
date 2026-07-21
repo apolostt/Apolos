@@ -17,6 +17,10 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -38,6 +42,7 @@ class ShieldVpnService : VpnService() {
     private val running = AtomicBoolean(false)
     private var tun: ParcelFileDescriptor? = null
     private var worker: Thread? = null
+    private var dnsPool: ExecutorService? = null
     private var mode = MODE_DNS
     private lateinit var filter: DnsFilter
 
@@ -103,6 +108,16 @@ class ShieldVpnService : VpnService() {
             getString(R.string.vpn_started_detail, mode),
         )
 
+        // Bounded pool for upstream DNS forwarding. CallerRunsPolicy applies
+        // back-pressure (the reader runs the task itself) if a flood of look-ups
+        // fills the queue, so work never grows unbounded and queries are never
+        // dropped.
+        dnsPool = ThreadPoolExecutor(
+            2, 16, 30L, TimeUnit.SECONDS,
+            LinkedBlockingQueue(256),
+            ThreadPoolExecutor.CallerRunsPolicy(),
+        )
+
         worker = Thread({ loop() }, "apolos-vpn").also { it.start() }
     }
 
@@ -110,53 +125,60 @@ class ShieldVpnService : VpnService() {
         val fd = tun ?: return
         val input = FileInputStream(fd.fileDescriptor)
         val output = FileOutputStream(fd.fileDescriptor)
+        val writeLock = Any() // packet writes come from the reader + pool threads
         val buffer = ByteArray(32767)
         var blockedCount = 0L
 
-        DatagramSocket().use { upstream ->
-            protect(upstream)
-            upstream.soTimeout = 4000
-            while (running.get()) {
-                val n = try { input.read(buffer) } catch (_: Exception) { break }
-                if (n <= 0) continue
-                if (mode == MODE_KILLSWITCH) continue // drop — network is cut
+        while (running.get()) {
+            val n = try { input.read(buffer) } catch (_: Exception) { break }
+            if (n <= 0) continue
+            if (mode == MODE_KILLSWITCH) continue // drop — network is cut
 
-                val pkt = buffer.copyOf(n)
-                if (PacketUtils.ipVersion(pkt) != 4) continue
-                if (PacketUtils.protocol(pkt) != PacketUtils.PROTO_UDP) continue
-                val ihl = PacketUtils.ihlBytes(pkt)
-                if (PacketUtils.udpDstPort(pkt, ihl) != 53) continue
+            val pkt = buffer.copyOf(n)
+            if (PacketUtils.ipVersion(pkt) != 4) continue
+            if (PacketUtils.protocol(pkt) != PacketUtils.PROTO_UDP) continue
+            val ihl = PacketUtils.ihlBytes(pkt)
+            if (PacketUtils.udpDstPort(pkt, ihl) != 53) continue
 
-                val dns = PacketUtils.udpPayload(pkt, ihl, n)
-                val host = PacketUtils.dnsQueryName(dns)
+            val dns = PacketUtils.udpPayload(pkt, ihl, n)
+            val host = PacketUtils.dnsQueryName(dns)
 
-                if (filter.isBlocked(host)) {
-                    val reply = PacketUtils.buildUdpResponse(pkt, ihl, PacketUtils.buildNxDomain(dns))
-                    runCatching { output.write(reply) }
-                    blockedCount++
-                    SecurityState.updateStatus { it.copy(blockedDnsCount = blockedCount) }
-                } else {
-                    forwardDns(dns, upstream)?.let { answer ->
-                        val reply = PacketUtils.buildUdpResponse(pkt, ihl, answer)
-                        runCatching { output.write(reply) }
-                    }
+            if (filter.isBlocked(host)) {
+                val reply = PacketUtils.buildUdpResponse(pkt, ihl, PacketUtils.buildNxDomain(dns))
+                synchronized(writeLock) { runCatching { output.write(reply) } }
+                blockedCount++
+                SecurityState.updateStatus { it.copy(blockedDnsCount = blockedCount) }
+            } else {
+                // Forward off the reader thread so a slow/unresponsive upstream
+                // (up to the 4 s socket timeout) can't stall every other look-up.
+                dnsPool?.execute {
+                    val answer = forwardDns(dns) ?: return@execute
+                    val reply = PacketUtils.buildUdpResponse(pkt, ihl, answer)
+                    synchronized(writeLock) { runCatching { output.write(reply) } }
                 }
             }
         }
     }
 
-    private fun forwardDns(query: ByteArray, socket: DatagramSocket): ByteArray? = try {
-        val server = InetAddress.getByName(UPSTREAM_DNS)
-        socket.send(DatagramPacket(query, query.size, InetSocketAddress(server, 53)))
-        val respBuf = ByteArray(1500)
-        val resp = DatagramPacket(respBuf, respBuf.size)
-        socket.receive(resp)
-        respBuf.copyOf(resp.length)
+    /** Forwards a single query over its own protected socket (thread-safe). */
+    private fun forwardDns(query: ByteArray): ByteArray? = try {
+        DatagramSocket().use { socket ->
+            protect(socket)
+            socket.soTimeout = 4000
+            val server = InetAddress.getByName(UPSTREAM_DNS)
+            socket.send(DatagramPacket(query, query.size, InetSocketAddress(server, 53)))
+            val respBuf = ByteArray(1500)
+            val resp = DatagramPacket(respBuf, respBuf.size)
+            socket.receive(resp)
+            respBuf.copyOf(resp.length)
+        }
     } catch (_: Exception) { null }
 
     private fun stopTunnel() {
         running.set(false)
         worker?.interrupt()
+        dnsPool?.shutdownNow()
+        dnsPool = null
         runCatching { tun?.close() }
         tun = null
         SecurityState.updateStatus { it.copy(vpnActive = false, vpnMode = MODE_OFF) }
