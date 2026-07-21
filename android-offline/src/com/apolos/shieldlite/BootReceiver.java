@@ -1,0 +1,15 @@
+package com.apolos.shieldlite;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+
+/** Restarts monitoring after a reboot so protection is continuous. */
+public class BootReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent != null && Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+            MonitoringService.start(context);
+        }
+    }
+}

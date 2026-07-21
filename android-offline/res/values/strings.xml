@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Apolos Shield Lite</string>
+    <string name="channel_alert">Security alerts</string>
+    <string name="channel_status">Protection status</string>
+    <string name="monitoring_active">Monitoring active — camera, mic &amp; screen.</string>
+    <string name="vpn_running_dns">Protective VPN running (DNS filter)</string>
+    <string name="vpn_running_kill">Protective VPN running (kill-switch)</string>
+</resources>
