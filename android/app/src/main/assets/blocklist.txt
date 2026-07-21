@@ -1,0 +1,66 @@
+# Apolos Shield — bundled DNS blocklist (tracker / ad / telemetry / known-malware)
+# One domain per line. Suffix-matched (blocks the domain and its subdomains).
+# Add your own rules via files/user_blocklist.txt on the device.
+
+# --- Ad / tracking networks ---
+doubleclick.net
+googleadservices.com
+googlesyndication.com
+google-analytics.com
+googletagmanager.com
+googletagservices.com
+adservice.google.com
+pagead2.googlesyndication.com
+2mdn.net
+adnxs.com
+adsrvr.org
+advertising.com
+rubiconproject.com
+pubmatic.com
+openx.net
+criteo.com
+criteo.net
+taboola.com
+outbrain.com
+scorecardresearch.com
+quantserve.com
+moatads.com
+adcolony.com
+applovin.com
+appsflyer.com
+adjust.com
+kochava.com
+branch.io
+mopub.com
+inmobi.com
+chartboost.com
+unity3d.com
+vungle.com
+supersonicads.com
+ironsrc.mobile.com
+
+# --- Telemetry / analytics ---
+app-measurement.com
+firebase-settings.crashlytics.com
+crashlytics.com
+flurry.com
+mixpanel.com
+segment.io
+segment.com
+amplitude.com
+bugsnag.com
+sentry.io
+graph.facebook.com
+connect.facebook.net
+an.facebook.com
+ads.yahoo.com
+analytics.yahoo.com
+metrics.icloud.com
+hockeyapp.net
+yandex.ru
+mc.yandex.ru
+metrica.yandex.net
+
+# --- Common malware / phishing infrastructure seeds ---
+malware.testcategory.com
+phishing.testcategory.com

@@ -1,0 +1,72 @@
+name: Build Apolos Shield APK
+
+on:
+  push:
+    branches: [ "main", "claude/android-security-vpn-app-hufcjo" ]
+    paths: [ "android/**", ".github/workflows/android-build.yml" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ "android/**", ".github/workflows/android-build.yml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Generate CI signing keystore
+        run: |
+          keytool -genkeypair -keystore apolos-release.jks -alias apolos \
+            -keyalg RSA -keysize 4096 -validity 10000 \
+            -storepass "$CI_KS_PASS" -keypass "$CI_KS_PASS" \
+            -dname "CN=Apolos Shield CI, OU=Security, O=Apolos, C=CZ"
+          {
+            echo "storeFile=apolos-release.jks"
+            echo "storePassword=$CI_KS_PASS"
+            echo "keyAlias=apolos"
+            echo "keyPassword=$CI_KS_PASS"
+          } > app/keystore.properties
+        env:
+          # Ephemeral test key generated per-run. For a store-stable identity,
+          # replace this with a repository secret and a persisted keystore.
+          CI_KS_PASS: apolos-ci-${{ github.run_id }}
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build debug + release APKs
+        run: ./gradlew --no-daemon assembleDebug assembleRelease
+
+      - name: Show signing schemes (v1/v2/v3/v4)
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --verbose --print-certs \
+            app/build/outputs/apk/release/app-release.apk || true
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apolos-shield-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload release APK (CI-signed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: apolos-shield-release
+          path: android/app/build/outputs/apk/release/app-release.apk
